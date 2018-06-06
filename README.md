@@ -1,2 +1,2 @@
 # happystock
-Application for stock handling. Back: Laravel, front: Angular5
+Application for stock handling. Back: Laravel5, front: Angular5
