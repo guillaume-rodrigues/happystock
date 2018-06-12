@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Notifications\AlertLowStock;
 use App\Product;
 use App\Providers\RestServiceProvider;
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -50,16 +53,16 @@ class ProductController extends Controller
     public function updateProduct(Request $objRequest, $id)
     {
         // List the required parameters
-        $arrParameters = [
+        $arrHandledParameters = [
             'name',
             'desc',
             'quantity',
         ];
         // Initialise the response (code and content) in case of error missing parameter
         $intReturnCode = Response::HTTP_BAD_REQUEST;
-        $mixResult = RestServiceProvider::generateAtLeastOneParametersRequiredError($arrParameters);
+        $mixResult = RestServiceProvider::generateAtLeastOneParametersRequiredError($arrHandledParameters);
         // If the request is valid (contains at least one required parameters)
-        if ($objRequest->anyFilled($arrParameters)) {
+        if ($objRequest->anyFilled($arrHandledParameters)) {
             // Initialise the response (code and content) in case of success
             $intReturnCode = Response::HTTP_NO_CONTENT;
             $mixResult = null;
@@ -69,7 +72,12 @@ class ProductController extends Controller
                 $intReturnCode = Response::HTTP_NOT_FOUND;
                 $mixResult = RestServiceProvider::generateEntityNotFound('Product');
             } else {
-                $mixProduct->update($objRequest->only($arrParameters));
+                $mixProduct->update($objRequest->only($arrHandledParameters));
+                if ($mixProduct->isLowStock()) {
+                    /** @var User $objUser */
+                    $objUser = Auth::user();
+                    $objUser->notify(new AlertLowStock($mixProduct));
+                }
             }
         }
 

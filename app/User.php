@@ -39,6 +39,10 @@ class User extends Authenticatable
         self::FIELD_PASS, self::FIELD_REMEMBER_TOKEN
     ];
 
+    /**
+     * Generate an api token an set it to the current user
+     * @return string The generated token
+     */
     public function generateToken()
     {
         $this->api_token = str_random(60);
