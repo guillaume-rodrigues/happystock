@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Seeder;
 use App\User;
-use Illuminate\Support\Facades\Hash;
 
 class UsersTableSeeder extends Seeder
 {
@@ -15,10 +14,12 @@ class UsersTableSeeder extends Seeder
     {
         User::truncate();
 
-        User::create([
+        /** @var User $objUser */
+        $objUser = User::create([
             'name' => 'admin',
-            'email' => 'mr.guillaume.rodrigues@gmail.com',
-            'password' => Hash::make('admin')
+            'email' => 'mr.guillaume.rodrigues@gmail.com'
         ]);
+
+        $objUser->generateToken();
     }
 }

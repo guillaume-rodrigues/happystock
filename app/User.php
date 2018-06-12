@@ -36,7 +36,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        self::FIELD_PASS, self::FIELD_REMEMBER_TOKEN, self::FIELD_API_TOKEN,
+        self::FIELD_PASS, self::FIELD_REMEMBER_TOKEN
     ];
 
     public function generateToken()

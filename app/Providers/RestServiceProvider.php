@@ -11,6 +11,7 @@ class RestServiceProvider extends ServiceProvider
     const EC_NOT_FOUND = 10;
     const EC_PARAMETERS_REQUIRED = 11;
     const EC_INTERNAL_ERROR = 12;
+    const EC_FORBIDDEN = 13;
     // Key used in array
     const ARRAY_KEY_ERRORS = 'errors';
 
@@ -107,6 +108,19 @@ class RestServiceProvider extends ServiceProvider
         ];
     }
 
+    /**
+     * Generate error result when the provided id is not found in the database
+     * @return array
+     */
+    public static function generateRequiredAuth()
+    {
+        return [
+            self::ARRAY_KEY_ERRORS => self::generateErrorLine(
+                self::EC_FORBIDDEN,
+                "Auth is required"
+            ),
+        ];
+    }
 
 
     /**
