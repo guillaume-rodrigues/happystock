@@ -25,4 +25,5 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get(ROUTE_PRODUCT_ID, 'ProductController@getProductDetail');
     Route::post(ROUTE_PRODUCT_ID, 'ProductController@updateProduct');
     Route::delete(ROUTE_PRODUCT_ID, 'ProductController@deleteProduct');
+    Route::get('stats', 'StatsController@getStats');
 });
