@@ -47,9 +47,9 @@ class AlertLowStock extends Notification
         $strUrl = url('/api/products/'.$this->objCurrentProduct->id);
 
         return (new MailMessage)
-            ->subject('Low quantity in stock of product '.$this->objCurrentProduct->name)
+            ->subject('Low quantity in stock of product \''.$this->objCurrentProduct->name.'\'')
             ->greeting('Hello!')
-            ->line("The quantity in stock of the product {$this->objCurrentProduct->name} ".
+            ->line("The quantity in stock of the product '{$this->objCurrentProduct->name}' ".
                 '(current stock: '.
                 $this->objCurrentProduct->quantity.
                 ') is too low (under '.

@@ -17,11 +17,14 @@ class ProductsTableSeeder extends Seeder
         $objFakerGenerator = \Faker\Factory::create();
 
         for ($intIndex = 0; $intIndex < 50; $intIndex++) {
-            Product::create([
+            /** @var Product $objProduct */
+            $objProduct = Product::create([
                 'name' => $objFakerGenerator->sentence,
                 'desc' => $objFakerGenerator->paragraph,
-                'quantity' => $objFakerGenerator->numberBetween(0, 100)
+                'quantity' => $objFakerGenerator->numberBetween(0, 100),
+                'unit_price' => $objFakerGenerator->randomFloat(2, 1, 1000),
             ]);
+            $objProduct->updateTotalPrice();
         }
     }
 }

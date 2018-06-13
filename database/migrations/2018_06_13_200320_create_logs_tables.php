@@ -3,9 +3,9 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use App\Product;
+use App\Logs;
 
-class CreateProductsTable extends Migration
+class CreateLogsTables extends Migration
 {
     /**
      * Run the migrations.
@@ -14,13 +14,14 @@ class CreateProductsTable extends Migration
      */
     public function up()
     {
-        Schema::create(Product::TABLE_NAME, function (Blueprint $table) {
+        Schema::create(Logs::TABLE_NAME, function (Blueprint $table) {
             $table->increments('id');
-            $table->string('name');
-            $table->text('desc');
-            $table->integer('quantity', false, true);
+            $table->integer('quantity', false);
             $table->float('unit_price');
             $table->float('total_price')->nullable();
+            // For a log, we can't have a foreign key, as we want the log survive to the product related
+            // If not, when we delete the product, all stock transaction are gone
+            $table->integer('product_id');
             $table->timestamps();
         });
     }
@@ -32,6 +33,6 @@ class CreateProductsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists(Product::TABLE_NAME);
+        Schema::dropIfExists(Logs::TABLE_NAME);
     }
 }

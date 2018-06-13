@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Notifications\AlertLowStock;
+use App\Events\UpdateStock;
 use App\Product;
 use App\Providers\RestServiceProvider;
-use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -18,6 +16,7 @@ class ProductController extends Controller
 
     /**
      * Return products list paginated
+     *
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
     public function getProductsList()
@@ -27,7 +26,9 @@ class ProductController extends Controller
 
     /**
      * Get the product detail
+     *
      * @param string $id
+     *
      * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
      */
     public function getProductDetail($id)
@@ -45,6 +46,8 @@ class ProductController extends Controller
     }
 
     /**
+     * Update the chosen product with provided data
+     *
      * @param Request $objRequest
      * @param string $id
      *
@@ -54,9 +57,9 @@ class ProductController extends Controller
     {
         // List the required parameters
         $arrHandledParameters = [
-            'name',
-            'desc',
-            'quantity',
+            Product::FIELD_NAME,
+            Product::FIELD_DESC,
+            Product::FIELD_QUANTITY,
         ];
         // Initialise the response (code and content) in case of error missing parameter
         $intReturnCode = Response::HTTP_BAD_REQUEST;
@@ -72,12 +75,18 @@ class ProductController extends Controller
                 $intReturnCode = Response::HTTP_NOT_FOUND;
                 $mixResult = RestServiceProvider::generateEntityNotFound('Product');
             } else {
-                $mixProduct->update($objRequest->only($arrHandledParameters));
-                if ($mixProduct->isLowStock()) {
-                    /** @var User $objUser */
-                    $objUser = Auth::user();
-                    $objUser->notify(new AlertLowStock($mixProduct));
-                }
+                // Retrieve the provided parameters
+                $arrProvidedParameters = $objRequest->only($arrHandledParameters);
+                // Compute the new quantity
+                $intNewQuantity = $arrProvidedParameters[Product::FIELD_QUANTITY] ?? $mixProduct->quantity;
+                // Compute the stock diff
+                $arrProvidedParameters['quantity_diff'] = $intNewQuantity - $mixProduct->quantity;
+                // Update the products
+                $mixProduct->update($arrProvidedParameters);
+                // Update the total price
+                $mixProduct->updateTotalPrice();
+                // Trigger UpdateStock event
+                event(new UpdateStock($mixProduct, $arrProvidedParameters));
             }
         }
 
@@ -86,16 +95,18 @@ class ProductController extends Controller
 
     /**
      * Create a new product with the provided data
+     *
      * @param Request $objRequest
+     *
      * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
      */
     public function createProduct(Request $objRequest)
     {
         // List the required parameters
         $arrParametersValidation = [
-            'name' => 'required|string|max:255',
-            'desc' => 'required|string|max:255',
-            'quantity' => 'required|integer',
+            Product::FIELD_NAME => 'required|string|max:255',
+            Product::FIELD_DESC => 'required|string|max:255',
+            Product::FIELD_QUANTITY => 'required|integer',
         ];
         $arrParametersName = array_keys($arrParametersValidation);
         $objValidator = Validator::make($objRequest->all(), $arrParametersValidation);
@@ -120,7 +131,9 @@ class ProductController extends Controller
 
     /**
      * Get the product detail
+     *
      * @param string $id
+     *
      * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
      */
     public function deleteProduct($id)
